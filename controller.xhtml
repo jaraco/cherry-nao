@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+
+	<!-- Le styles -->
+	<link href="/assets/css/bootstrap.css" rel="stylesheet" />
+	<style type="text/css">
+	  body {
+		padding-top: 60px;
+		padding-bottom: 40px;
+	  }
+	  .sidebar-nav {
+		padding: 9px 0;
+	  }
+	</style>
+	<link href="/assets/css/bootstrap-responsive.css" rel="stylesheet" />
+
+	<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+	  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+	<script type="text/javascript"><![CDATA[
+		function init() {
+			get_volume();
+			check_battery_level();
+			update_installed_behaviors();
+			update_running_behaviors();
+			$('#say_form').live("submit", function() {
+				say_text();
+			});
+		}
+		$(document).ready(init);
+
+		function get_volume() {
+			volume = $.get('/audio/volume');
+			volume.success(function(data) {
+				$('#volume').html(data);
+			})
+		}
+
+		function set_volume(level) {
+			level = Math.min(Math.max(level, 0), 100);
+			level_string = '' + level
+			$.ajax('/audio/volume', {
+				type: 'PUT',
+				data: level_string,
+				contentType: 'application/json'
+			}).success(get_volume);
+		}
+
+		function volume_up() {
+			$.get('/audio/volume').success(function(data) {
+				set_volume(parseInt(data) + 10);
+			});
+		}
+
+		function volume_down() {
+			$.get('/audio/volume').success(function(data) {
+				set_volume(parseInt(data) - 10);
+			});
+		}
+
+		function check_battery_level() {
+			$.get('/memory/ALSentinel%2fBatteryLevel').success(function(data) {
+				$('#battery').html(data);
+			}).complete(function(data) {
+				setTimeout(check_battery_level, 60000);
+			});
+		}
+
+		function update_installed_behaviors() {
+			$('#installed_behaviors').empty();
+			$.get('/behaviors/installed').success(function(behaviors) {
+				$.each(behaviors, function(index, name) {
+					var link = $('<a>', {
+						'href': '#',
+						'text': '[start]',
+						'name': name
+					});
+					var item = $('<li>');
+					item.html(name + ' ');
+					item.append(link);
+					$('#installed_behaviors').append(item);
+				});
+				$('#installed_behaviors li a').live('click', function() {
+					start_behavior($(this).attr('name'));
+					return false;
+				})
+			})
+		}
+
+		function start_behavior(name) {
+			$.ajax('/behaviors/running', {
+				type: 'POST',
+				data: name,
+				contentType: 'application/json'
+			});
+		}
+
+		function stop_behavior(name) {
+			$.ajax('/behaviors/running/'+name, {
+				type: 'DELETE',
+				contentType: 'application/json'
+			});
+		}
+
+		function update_running_behaviors() {
+			$.ajax({
+				url: '/behaviors/running',
+				success: function(behaviors) {
+					$('#running_behaviors').empty();
+					$.each(behaviors, function(index, name) {
+						var link = $('<a>', {
+							'href': '#',
+							'text': '[stop]',
+							'name': name
+						});
+						var item = $('<li>');
+						item.html(name + ' ');
+						item.append(link);
+						$('#running_behaviors').append(item);
+					});
+					$('#running_behaviors li a').live('click', function() {
+						stop_behavior($(this).attr('name'));
+						return false;
+					})
+				},
+				complete: function() {
+					setTimeout(update_running_behaviors, 5000);
+				}
+			});
+		}
+
+		function say_text() {
+			$.ajax({
+				type: "POST",
+				url: "/speech",
+				data: $("#say_text")[0].value,
+				contentType: 'application/json'
+			});
+			$("#say_text")[0].value = '';
+			$("#say_text")[0].focus();
+		}
+
+	]]></script>
+</head>
+<body>
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<a class="brand" href="#">Cherry NAO</a>
+				<div class="nav-collapse" style="display:none">
+					<ul class="nav">
+						<li class="active"><a href="#">Home</a></li>
+						<li><a href="#about">About</a></li>
+						<li><a href="#contact">Contact</a></li>
+					</ul>
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+	</div>
+
+	Audio Volume: <span id="volume">Unknown</span>
+	<span id="refresh-volume" onclick="javascript:get_volume()">[Refresh]</span>
+	<div onclick="javascript:volume_up()">Volume Up</div>
+	<div onclick="javascript:volume_down()">Volume Down</div>
+	<div>
+		Battery Level: <span id="battery">Unknown</span>
+	</div>
+	<div id="behavior manager">
+		<div>
+			<h1>Installed Behaviors</h1>
+			<ul id="installed_behaviors" />
+		</div>
+		<div>
+			<h1>Running Behaviors</h1>
+			<ul id="running_behaviors" />
+		</div>
+	</div>
+	<div>
+		<h1>Say Something</h1>
+		<form id="say_form" onsubmit="return false">
+			<input type="text" id="say_text" />
+		</form>
+	</div>
+
+	<!-- Le javascript
+	================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<script src="/assets/js/bootstrap-transition.js"></script>
+	<script src="/assets/js/bootstrap-alert.js"></script>
+	<script src="/assets/js/bootstrap-modal.js"></script>
+	<script src="/assets/js/bootstrap-dropdown.js"></script>
+	<script src="/assets/js/bootstrap-scrollspy.js"></script>
+	<script src="/assets/js/bootstrap-tab.js"></script>
+	<script src="/assets/js/bootstrap-tooltip.js"></script>
+	<script src="/assets/js/bootstrap-popover.js"></script>
+	<script src="/assets/js/bootstrap-button.js"></script>
+	<script src="/assets/js/bootstrap-collapse.js"></script>
+	<script src="/assets/js/bootstrap-carousel.js"></script>
+	<script src="/assets/js/bootstrap-typeahead.js"></script>
+
+</body>
+</html>
