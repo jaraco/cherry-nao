@@ -134,15 +134,31 @@
 			});
 		}
 
-		function say_text() {
+		function say(text) {
 			$.ajax({
 				type: "POST",
 				url: "/speech",
-				data: $("#say_text")[0].value,
+				data: text,
 				contentType: 'application/json'
 			});
+		}
+
+		function say_text() {
+			var text = $("#say_text")[0].value;
+			say(text);
 			$("#say_text")[0].value = '';
 			$("#say_text")[0].focus();
+
+			// save a link to that text
+			var link = $('<a>', {
+				'href': '#',
+				'text': text,
+			})
+			$("#say_history").append(link);
+			link.live('click', function() {
+				say(text);
+				return false;
+			});
 		}
 
 	]]></script>
@@ -190,6 +206,8 @@
 		<form id="say_form" onsubmit="return false">
 			<input type="text" id="say_text" />
 		</form>
+		<div id="say_history">
+		</div>
 	</div>
 
 	<!-- Le javascript
