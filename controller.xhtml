@@ -154,8 +154,9 @@
 				'href': '#',
 				'text': text,
 			})
-			$("#say_history").append(link);
-			link.live('click', function() {
+			var item = $("<div>").append(link)
+			$("#say_history").prepend(item);
+			link.click(function() {
 				say(text);
 				return false;
 			});
