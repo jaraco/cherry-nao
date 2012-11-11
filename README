@@ -1,0 +1,61 @@
+Cherry NAO
+==========
+
+Cherry NAO is a REST web interface for Aldebaran NAO robots. It is so named
+because it uses `CherryPy <http://www.cherrypy.org>`_ for the web service
+layer. CherryPy is a multi-threaded HTTP server that runs on Python, and thus
+runs directly on the NAO.
+
+By installing and running this behavior, your NAO will run a new service
+on port 8080. This new service provides a robust, stateless API enabling
+other applications to interact with the NAO.
+
+Usage
+=====
+
+To demonstrate the usage of the Cherry NAO, the web service provides a simple,
+Javascript-based web controller.
+
+First install and start the behavior, then browse to the robot on port 8080.
+For example, "http://nao.local:8080". A link is provided to the demo
+controller; click the link to start.
+
+You will be presented with a few demo controls:
+
+  - volume control
+  - battery level
+  - installed behaviors
+  - running behaviors
+  - say something
+
+API
+===
+
+The API is designed with REST principles in mind. Most operations accept and
+return JSON.
+
+Behaviors
+---------
+
+`/behaviors/installed`
+
+  - GET: return a list of behavior names installed.
+
+`/behaviors/running`
+
+  - GET: return a list of behaviors that are currently running.
+  - POST: take a behavior name and set it running (non-blocking).
+  - DELETE: take a behavior name and attempt to stop it.
+
+`/audio/volume`
+
+  - GET: return the current audio volume.
+  - PUT: set the audio volume to the value in the body.
+
+`/speech`
+
+  - POST: say the text in the body.
+
+`/memory/{name}`
+
+  - GET: return the data for the memory indicated by `name`.
