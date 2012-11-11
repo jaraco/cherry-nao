@@ -23,7 +23,12 @@ class BaseHandler(object):
 	exposed = True
 
 def load_al_module(name):
+	"""
+	Add a proxy to the AL Module named by `name` to the CherryPy request.
+	"""
 	cherrypy.serving.request.module = naoqi.ALProxy(name, 'localhost', 9559)
+
+# install the AL Module Loader as a CherryPy tool.
 cherrypy.tools.al_module_loader = cherrypy.Tool('before_handler', load_al_module)
 
 class Behavior(BaseHandler):
@@ -90,6 +95,8 @@ class AudioVolume(BaseHandler):
 		req.module.setOutputVolume(int(req.body.read()))
 
 class AudioDevice(BaseHandler):
+	"A base handler for the ALAudioDevice"
+
 	_cp_config = {
 		'tools.al_module_loader.on': True,
 		'tools.al_module_loader.name': 'ALAudioDevice',
@@ -98,6 +105,8 @@ class AudioDevice(BaseHandler):
 	volume = AudioVolume()
 
 class TextToSpeech(BaseHandler):
+	"A handler for ALTextToSpeech"
+
 	_cp_config = {
 		'tools.al_module_loader.on': True,
 		'tools.al_module_loader.name': 'ALTextToSpeech',
@@ -125,6 +134,7 @@ class Root(BaseHandler):
 	memory = Memory()
 
 	def GET(self):
+		"Provide a simple link to the controller"
 		return 'Welcome to <a href="controller">NAO</a>'
 
 this_dir = os.path.dirname(__file__)
@@ -166,8 +176,6 @@ def start():
 	cherrypy.config.update(config)
 	cherrypy.tree.mount(Root(), config=config)
 	cherrypy.engine.start()
-	tts = naoqi.ALProxy("ALTextToSpeech", 'localhost', 9559)
-	#tts.say("Cherry Nao engaged")
 
 def stop():
 	cherrypy.engine.exit()
