@@ -1,8 +1,10 @@
 #from __future__ import print_function
 import os
 import json
+import io
 
 import cherrypy
+import Image
 try:
 	import naoqi
 except ImportError:
@@ -104,6 +106,50 @@ class AudioDevice(BaseHandler):
 
 	volume = AudioVolume()
 
+class VideoImage(BaseHandler):
+
+	def GET(self):
+		resolution = 2    # VGA
+		colorspace = 11   # RGB
+		fps = 1
+		client_id = cherrypy.request.module.subscribe(
+			"Cherry NAO", resolution, colorspace, fps)
+
+		(
+			width,
+			height,
+			n_layers,
+			colorspace,
+			ts_sec, ts_msec, # timestamp
+			bytes,
+			camera_id,
+			left_angle, top_angle,
+			right_angle, bottom_angle
+		) = cherrypy.request.module.getImageRemote(client_id)
+
+		cherrypy.request.module.unsubscribe(client_id)
+
+		# Convert the image to PNG using PIL
+		image = Image.fromstring("RGB", (width, height), bytes)
+
+		cherrypy.response.headers['Content-Type'] = 'image/png'
+		out_stream = io.BytesIO()
+
+		image.save(out_stream, "PNG")
+		out_stream.seek(0)
+
+		return out_stream
+
+class VideoDevice(BaseHandler):
+	"A base handler for the ALVideoDevice"
+
+	_cp_config = {
+		'tools.al_module_loader.on': True,
+		'tools.al_module_loader.name': 'ALVideoDevice',
+	}
+
+	image = VideoImage()
+
 class TextToSpeech(BaseHandler):
 	"A handler for ALTextToSpeech"
 
@@ -132,6 +178,7 @@ class Root(BaseHandler):
 	audio = AudioDevice()
 	speech = TextToSpeech()
 	memory = Memory()
+	video = VideoDevice()
 
 	def GET(self):
 		"Provide a simple link to the controller"
