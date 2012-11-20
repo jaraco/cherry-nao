@@ -59,3 +59,7 @@ Behaviors
 `/memory/{name}`
 
   - GET: return the data for the memory indicated by `name`.
+
+`/video/image`
+
+  - GET: return a video image as PNG.
