@@ -2,6 +2,8 @@
 import os
 import json
 import io
+import operator
+import itertools
 
 import cherrypy
 import Image
@@ -46,14 +48,63 @@ class Behavior(BaseHandler):
 		behavior_crg = cherrypy.request.body
 		raise NotImplementedError()
 
-class InstalledBehaviors(BaseHandler):
+
+class Grouped(object):
+	"mix-in for grouping behaviors"
+
+	@classmethod
+	def grouped_behaviors(cls, raw_behaviors):
+		aug_behaviors = map(GroupedBehavior, raw_behaviors)
+		for behavior in aug_behaviors:
+			yield behavior.__json__()
+
+
+class InstalledBehaviors(Grouped, BaseHandler):
 	def GET(self):
 		req = cherrypy.request
 		resp = cherrypy.response
 		resp.headers['Content-Type'] = 'application/json'
 		return json.dumps(req.module.getInstalledBehaviors())
 
-class RunningBehaviors(BaseHandler):
+
+class GroupedBehavior(unicode):
+	"""
+	Take a qualified behavior name and provide
+	group and name attributes for each of the parts.
+
+	>>> gb = GroupedBehavior('naos-life-channel/sit-scratch')
+	>>> gb.name
+	'sit-scratch'
+	>>> gb.group
+	'naos-life-channel'
+
+	If no group is provided, it will be None
+	>>> gb = GroupedBehavior('canidance')
+	>>> gb.name
+	'canidance'
+	>>> gb.group
+	"""
+
+	@property
+	def name(self):
+		group, sep, name = self.rpartition('/')
+		return name
+
+	@property
+	def group(self):
+		group, sep, name = self.rpartition('/')
+		return group or None
+
+	def __json__(self):
+		return dict(
+			name=self.name,
+			group=self.group,
+			qual_name=self,
+		)
+
+
+class RunningBehaviors(Grouped, BaseHandler):
+
 	def GET(self):
 		req = cherrypy.request
 		resp = cherrypy.response
@@ -69,7 +120,7 @@ class RunningBehaviors(BaseHandler):
 		req = cherrypy.request
 		req.module.stopBehavior(name)
 
-class Behaviors(BaseHandler):
+class Behaviors(Grouped, BaseHandler):
 	_cp_config = {
 		'tools.al_module_loader.on': True,
 		'tools.al_module_loader.name': 'ALBehaviorManager',
@@ -79,8 +130,10 @@ class Behaviors(BaseHandler):
 
 	def GET(self):
 		req = cherrypy.request
-		req.headers['Content-Type'] = 'application/json'
-		return json.dumps(req.module.getInstalledBehaviors())
+		resp = cherrypy.response
+		resp.headers['Content-Type'] = 'application/json'
+		res = self.grouped_behaviors(req.module.getInstalledBehaviors())
+		return json.dumps(res)
 
 	def _cp_dispatch(self, vpath):
 		cherrypy.serving.request.behavior_name = vpath.pop(0)

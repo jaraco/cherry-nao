@@ -74,14 +74,17 @@
 		function update_installed_behaviors() {
 			$('#installed_behaviors').empty();
 			$.get('/behaviors/installed').success(function(behaviors) {
-				$.each(behaviors, function(index, name) {
+				$.each(behaviors, function(index, behavior) {
+					if(behavior.group) {
+						return; //stubbed
+					}
 					var link = $('<a>', {
 						'href': '#',
 						'text': '[start]',
-						'name': name
+						'name': behavior.qual_name
 					});
 					var item = $('<li>');
-					item.html(name + ' ');
+					item.html(behavior.name + ' ');
 					item.append(link);
 					$('#installed_behaviors').append(item);
 				});
