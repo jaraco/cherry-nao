@@ -82,13 +82,17 @@
 					});
 					if(behavior.group) {
 						var group_id = 'group-' + behavior.group;
-						var sel = '#installed_behaviors/#group-' + behavior.group;
-						if (!$(sel)) {
-							var group = $('<li id="' + group_id + '">');
+						if (!$('#'+group_id).length) {
+							var group = $('<li>');
+							var group_list = $('<ul>', {'id': group_id});
 							group.html(behavior.group);
+							group.append(group_list);
 							$('#installed_behaviors').append(group);
 						}
-						$(sel).append(link);
+						var item = $('<li>');
+						item.html(behavior.name + ' ');
+						item.append(link);
+						$('#'+group_id).append(item);
 					}
 					else {
 						var item = $('<li>');
