@@ -55,8 +55,7 @@ class Grouped(object):
 	@classmethod
 	def grouped_behaviors(cls, raw_behaviors):
 		aug_behaviors = map(GroupedBehavior, raw_behaviors)
-		for behavior in aug_behaviors:
-			yield behavior.__json__()
+		return [behavior.__json__() for behavior in aug_behaviors]
 
 
 class InstalledBehaviors(Grouped, BaseHandler):
@@ -64,7 +63,8 @@ class InstalledBehaviors(Grouped, BaseHandler):
 		req = cherrypy.request
 		resp = cherrypy.response
 		resp.headers['Content-Type'] = 'application/json'
-		return json.dumps(req.module.getInstalledBehaviors())
+		res = self.grouped_behaviors(req.module.getInstalledBehaviors())
+		return json.dumps(res)
 
 
 class GroupedBehavior(unicode):
