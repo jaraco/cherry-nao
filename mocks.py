@@ -14,10 +14,10 @@ naoqi = mock.Mock(
 		return_value=mock.Mock(
 			# behaviors
 			getRunningBehaviors=mock.Mock(
-				return_value=['foo', 'foo-channel/bar'],
+				return_value=[],
 			),
 			getInstalledBehaviors=mock.Mock(
-				return_value=[],
+				return_value=['foo', 'foo-channel/bar'],
 			),
 			# audio
 			getOutputVolume=mock.Mock(
