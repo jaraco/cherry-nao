@@ -2,8 +2,6 @@
 import os
 import json
 import io
-import operator
-import itertools
 
 import cherrypy
 import Image
