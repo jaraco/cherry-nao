@@ -16,7 +16,7 @@ except ImportError:
 		ALProxy=mock.Mock(
 			return_value=mock.Mock(
 				getRunningBehaviors=mock.Mock(
-					return_value=[],
+					return_value=['foo', 'foo-channel/bar'],
 				),
 				getInstalledBehaviors=mock.Mock(
 					return_value=[],
