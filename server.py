@@ -37,6 +37,24 @@ class Behavior(BaseHandler):
 		raise NotImplementedError()
 
 
+def json_out(*args, **kwargs):
+	"""
+	https://bitbucket.org/cherrypy/cherrypy/issue/1297/ documents
+	an issue in CherryPy where json_out content is not properly encoded and
+	so raises an error in constructing the response. This decorator augments
+	the json_out tool to work around the issue.
+	"""
+	orig_wrapper = cherrypy.tools.json_out(*args, **kwargs)
+	def wrapper(func):
+		func = orig_wrapper(func)
+		config = vars(func).setdefault('_cp_config', {})
+		config.update({
+			'tools.encode.text_only': False,
+		})
+		return func
+	return wrapper
+
+
 class Grouped(object):
 	"mix-in for grouping behaviors"
 
@@ -47,7 +65,7 @@ class Grouped(object):
 
 
 class InstalledBehaviors(Grouped, BaseHandler):
-	@cherrypy.tools.json_out()
+	@json_out()
 	def GET(self):
 		req = cherrypy.request
 		return self.grouped_behaviors(req.module.getInstalledBehaviors())
@@ -91,7 +109,7 @@ class GroupedBehavior(six.text_type):
 
 class RunningBehaviors(Grouped, BaseHandler):
 
-	@cherrypy.tools.json_out()
+	@json_out()
 	def GET(self):
 		req = cherrypy.request
 		return req.module.getRunningBehaviors()
@@ -113,7 +131,7 @@ class Behaviors(Grouped, BaseHandler):
 	installed = InstalledBehaviors()
 	running = RunningBehaviors()
 
-	@cherrypy.tools.json_out()
+	@json_out()
 	def GET(self):
 		req = cherrypy.request
 		return self.grouped_behaviors(req.module.getInstalledBehaviors())
@@ -123,7 +141,7 @@ class Behaviors(Grouped, BaseHandler):
 		return Behavior()
 
 class AudioVolume(BaseHandler):
-	@cherrypy.tools.json_out()
+	@json_out()
 	def GET(self):
 		req = cherrypy.request
 		return req.module.getOutputVolume()
@@ -205,7 +223,7 @@ class Memory(BaseHandler):
 		'tools.al_module_loader.name': 'ALMemory',
 	}
 
-	@cherrypy.tools.json_out()
+	@json_out()
 	def GET(self, name):
 		return cherrypy.request.module.getData(name)
 
