@@ -242,7 +242,7 @@ this_dir = os.path.dirname(__file__)
 def start():
 	config = {
 		'global': {
-			'server.socket_host': '0.0.0.0',
+			'server.socket_host': '::0',
 			'server.socket_port': 8080,
 			'engine.autoreload.on': False,
 		},
