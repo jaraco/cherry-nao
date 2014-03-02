@@ -1,8 +1,8 @@
 import os
 import json
 import io
-import sys
 
+import six
 import cherrypy
 import Image
 try:
@@ -20,9 +20,6 @@ except ImportError:
 					return_value=[],
 				),
 			)))
-
-if sys.version_info < (3,):
-	str = unicode
 
 class BaseHandler(object):
 	exposed = True
@@ -68,7 +65,7 @@ class InstalledBehaviors(Grouped, BaseHandler):
 		return json.dumps(res)
 
 
-class GroupedBehavior(str):
+class GroupedBehavior(six.text_type):
 	"""
 	Take a qualified behavior name and provide
 	group and name attributes for each of the parts.
