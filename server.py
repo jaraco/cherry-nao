@@ -10,18 +10,7 @@ from PIL import Image
 try:
 	import naoqi
 except ImportError:
-	# mock the naoqi module so we can test this on a platform without naoqi
-	import mock
-	naoqi = mock.Mock(
-		ALProxy=mock.Mock(
-			return_value=mock.Mock(
-				getRunningBehaviors=mock.Mock(
-					return_value=['foo', 'foo-channel/bar'],
-				),
-				getInstalledBehaviors=mock.Mock(
-					return_value=[],
-				),
-			)))
+	from mocks import naoqi
 
 class BaseHandler(object):
 	exposed = True
