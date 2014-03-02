@@ -1,5 +1,4 @@
 import os
-import json
 import io
 
 import six
@@ -48,12 +47,10 @@ class Grouped(object):
 
 
 class InstalledBehaviors(Grouped, BaseHandler):
+	@cherrypy.tools.json_out()
 	def GET(self):
 		req = cherrypy.request
-		resp = cherrypy.response
-		resp.headers['Content-Type'] = 'application/json'
-		res = self.grouped_behaviors(req.module.getInstalledBehaviors())
-		return json.dumps(res)
+		return self.grouped_behaviors(req.module.getInstalledBehaviors())
 
 
 class GroupedBehavior(six.text_type):
@@ -94,11 +91,10 @@ class GroupedBehavior(six.text_type):
 
 class RunningBehaviors(Grouped, BaseHandler):
 
+	@cherrypy.tools.json_out()
 	def GET(self):
 		req = cherrypy.request
-		resp = cherrypy.response
-		resp.headers['Content-Type'] = 'application/json'
-		return json.dumps(req.module.getRunningBehaviors())
+		return req.module.getRunningBehaviors()
 
 	def POST(self):
 		req = cherrypy.request
@@ -117,22 +113,20 @@ class Behaviors(Grouped, BaseHandler):
 	installed = InstalledBehaviors()
 	running = RunningBehaviors()
 
+	@cherrypy.tools.json_out()
 	def GET(self):
 		req = cherrypy.request
-		resp = cherrypy.response
-		resp.headers['Content-Type'] = 'application/json'
-		res = self.grouped_behaviors(req.module.getInstalledBehaviors())
-		return json.dumps(res)
+		return self.grouped_behaviors(req.module.getInstalledBehaviors())
 
 	def _cp_dispatch(self, vpath):
 		cherrypy.serving.request.behavior_name = vpath.pop(0)
 		return Behavior()
 
 class AudioVolume(BaseHandler):
+	@cherrypy.tools.json_out()
 	def GET(self):
 		req = cherrypy.request
-		req.headers['Content-Type'] = 'application/json'
-		return json.dumps(req.module.getOutputVolume())
+		return req.module.getOutputVolume()
 
 	def PUT(self):
 		req = cherrypy.request
@@ -211,9 +205,9 @@ class Memory(BaseHandler):
 		'tools.al_module_loader.name': 'ALMemory',
 	}
 
+	@cherrypy.tools.json_out()
 	def GET(self, name):
-		cherrypy.response.headers['Content-Type'] = 'application/json'
-		return json.dumps(cherrypy.request.module.getData(name))
+		return cherrypy.request.module.getData(name)
 
 class Root(BaseHandler):
 	behaviors = Behaviors()
