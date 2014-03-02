@@ -4,7 +4,9 @@ import io
 
 import six
 import cherrypy
-import Image
+
+from PIL import Image
+
 try:
 	import naoqi
 except ImportError:
