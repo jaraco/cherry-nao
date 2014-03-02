@@ -3,23 +3,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js" type="text/javascript"></script>
+	<script src="https://dl.dropboxusercontent.com/u/54081/jstree-3.0.0-beta9/jstree.min.js"></script>
 
 	<!-- Le styles -->
 	<link href="/assets/css/bootstrap.css" rel="stylesheet" />
+	<link href="https://dl.dropboxusercontent.com/u/54081/jstree-3.0.0-beta9/themes/default/style.min.css" rel="stylesheet" />
 	<style type="text/css">
-	  body {
+		body {
 		padding-top: 60px;
 		padding-bottom: 40px;
-	  }
-	  .sidebar-nav {
+		}
+		.sidebar-nav {
 		padding: 9px 0;
-	  }
+		}
 	</style>
 	<link href="/assets/css/bootstrap-responsive.css" rel="stylesheet" />
 
 	<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
 	<!--[if lt IE 9]>
-	  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->
 
 	<script type="text/javascript"><![CDATA[
@@ -75,36 +77,30 @@
 			$('#installed_behaviors').empty();
 			$.get('/behaviors/installed').success(function(behaviors) {
 				$.each(behaviors, function(index, behavior) {
-					var link = $('<a>', {
-						'href': '#',
-						'text': '[start]',
-						'name': behavior.qual_name
-					});
 					if(behavior.group) {
 						var group_id = 'group-' + behavior.group;
 						if (!$('#'+group_id).length) {
 							var group = $('<li>');
-							var group_list = $('<ul>', {'id': group_id});
+							var group_list = $('<ul>', {'id': group_id, 'class': 'jstree-closed'});
 							group.html(behavior.group);
 							group.append(group_list);
 							$('#installed_behaviors').append(group);
 						}
-						var item = $('<li>');
-						item.html(behavior.name + ' ');
-						item.append(link);
+						var item = $('<li>', {'qual_name': behavior.qual_name});
+						item.html(behavior.name);
 						$('#'+group_id).append(item);
 					}
 					else {
-						var item = $('<li>');
-						item.html(behavior.name + ' ');
-						item.append(link);
+						var item = $('<li>', {'qual_name': behavior.qual_name});
+						item.html(behavior.name);
 						$('#installed_behaviors').append(item);
 					}
 				});
-				$(document).on("click", "#installed_behaviors li a", function() {
-					start_behavior($(this).attr('name'));
-					return false;
-				})
+				var tree = $("#installed_behaviors").parent();
+				tree.on('select_node.jstree', function (e, data) {
+					start_behavior(data.node.li_attr.qual_name);
+					tree.jstree(true).deselect_node(data.node);
+				}).jstree();
 			})
 		}
 
@@ -211,7 +207,9 @@
 	<div id="behavior manager">
 		<div>
 			<h1>Installed Behaviors</h1>
-			<ul id="installed_behaviors" />
+			<div>
+				<ul id="installed_behaviors" />
+			</div>
 		</div>
 		<div>
 			<h1>Running Behaviors</h1>
